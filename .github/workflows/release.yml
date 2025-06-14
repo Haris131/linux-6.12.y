@@ -73,7 +73,7 @@ jobs:
           make deb-pkg -j"$(($(grep -c processor < /proc/cpuinfo)*2))"
 
       - name: Prepare artifacts
-        run: ls && echo .. && ls .. && mkdir artifacts && mv ../linux-* artifacts/
+        run: mkdir artifacts && mv ../linux-*$(ls ../linux-image-* | cut -d'_' -f1|cut -d'-' -f3)* artifacts/
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
