@@ -50,7 +50,7 @@ jobs:
       - name: Patching kernel to 6.6.${{ inputs.kernel_version }}
         if: (github.event.inputs.patch_kernel == 'true')
         run: |
-          for i in `seq 32 ${{ inputs.kernel_version }}`; do
+          for i in `seq 33 ${{ inputs.kernel_version }}`; do
             fp=$(($i-1))-$i
             wget -q "https://www.kernel.org/pub/linux/kernel/v6.x/incr/patch-6.12.$fp.xz"
             unxz patch-6.12.$fp.xz
