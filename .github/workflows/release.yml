@@ -110,7 +110,7 @@ jobs:
       - name: Generate release tag
         id: version
         run: |
-          NAME=$(ls artifacts/linux-image-* | cut -d'_' -f1|cut -d'-' -f3)
+          NAME=$(sudo ls artifacts/linux-image-* | cut -d'_' -f1|cut -d'-' -f3)
           TAG_NAME=$(echo v$NAME)
           git log -1 --format=%b > changes.txt
           git tag $TAG_NAME
