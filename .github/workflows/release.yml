@@ -1,25 +1,66 @@
 name: Release kernel deb packages
 on:
-  push:
-    tags:
-      - "*"
-  pull_request:
+  repository_dispatch:
   workflow_dispatch:
+    inputs:
+      patch_kernel:
+        description: "Patch kernel to new version"
+        required: false
+        default: 'false'
+        type: boolean
+      kernel_version:
+        description: "Select kernel version"
+        required: true
+        default: '33'
+        type: string
+      ssh:
+        description: 'SSH connection to Actions'
+        required: true
+        default: 'false'
+        type: choice
+        options:
+          - true
+          - false
 
 jobs:
   build:
     name: Build kernel
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+    container: debian:bookworm
     steps:
       - name: Prepare
         run: |
-          sudo apt-get -y update
-          sudo apt-get -y install git lsb-release gcc-aarch64-linux-gnu bison flex libssl-dev libelf-dev debhelper bc rsync kmod cpio wget xz-utils patchutils
-          sudo timedatectl set-timezone Asia/Jakarta
-          sudo hostnamectl set-hostname chewy
+          sudo cp /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list.d/ports.sources
+          sudo sed -i.bak -e 's/^\(Suites:.*\)$/\1\nArchitectures: amd64 i386/' /etc/apt/sources.list.d/ubuntu.sources
+          sudo sed -i.bak -e 's/^URIs:.*$/URIs: http:\/\/ports.ubuntu.com\/ubuntu-ports\//' /etc/apt/sources.list.d/ports.sources
+          sudo sed -i -e 's/^\(Suites:.*\)$/\1\nArchitectures: armhf arm64/' /etc/apt/sources.list.d/ports.sources
+          cat /etc/apt/sources.list.d/ports.sources
+          sudo dpkg --add-architecture armhf
+          sudo dpkg --add-architecture arm64
+          apt-get -y update
+          apt-get -y install git lsb-release gcc-aarch64-linux-gnu bison flex build-essential libssl-dev:armhf libssl-dev:arm64 libelf-dev debhelper bc rsync kmod cpio wget patchutils xz-utils
 
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Prepare repository
+        run: git config --global --add safe.directory "$(pwd)"
+
+      - name: Patching kernel to 6.6.${{ inputs.kernel_version }}
+        if: (github.event.inputs.patch_kernel == 'true')
+        run: |
+          for i in `seq 32 ${{ inputs.kernel_version }}`; do
+            fp=$(($i-1))-$i
+            wget -q "https://www.kernel.org/pub/linux/kernel/v6.x/incr/patch-6.12.$fp.xz"
+            unxz patch-6.12.$fp.xz
+            echo "Patching kernel 6.12.$(($i-1)) to 6.12.$i"
+            patch -p1 < patch-6.12.$fp
+            rm patch-6.12.$fp
+          done
+
+      - name: SSH connection to Actions
+        uses: csexton/debugger-action@master
+        if: (github.event.inputs.ssh == 'true' && github.event.inputs.ssh  != 'false') || contains(github.event.action, 'ssh')
 
       - name: Build
         run: |
@@ -27,8 +68,8 @@ jobs:
           export ARCH=arm64
           export LOCALVERSION=
           make LOCALVERSION= mrproper
-          make msm8916_defconfig
-          make LOCALVERSION= deb-pkg -j"$(($(grep -c processor < /proc/cpuinfo)*2))"
+          make uz801v3_defconfig
+          make deb-pkg -j"$(($(grep -c processor < /proc/cpuinfo)*2))"
 
       - name: Prepare artifacts
         run: mkdir artifacts && mv ../linux-* artifacts/
@@ -62,14 +103,23 @@ jobs:
       - name: Build
         run: |
           cd .github/scripts
-          chmod +x build_boot_img.sh
           sudo ./build_boot_img.sh
 
-      - name: Generate release info
-        run: git log -1 --format=%B > changes.txt
+      - name: Generate release tag
+        id: version
+        run: |
+          NAME=$(ls artifacts/linux-image-* | cut -d'_' -f1|cut -d'-' -f3)
+          TAG_NAME=$(echo v$NAME)
+          git log -1 --format=%b > changes.txt
+          git tag $TAG_NAME
+          git push origin $TAG_NAME
+          echo "NAME=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_OUTPUT
 
       - name: Releases
         uses: softprops/action-gh-release@v2
         with:
+          name: ${{ steps.version.outputs.NAME }}
+          tag_name: ${{ steps.version.outputs.TAG_NAME }}
           body_path: changes.txt
           files: artifacts/*
