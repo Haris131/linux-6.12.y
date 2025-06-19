@@ -25,7 +25,7 @@ on:
 jobs:
   build:
     name: Build kernel
-    runs-on: ubuntu-latest-arm
+    runs-on: ubuntu-22.04-arm
     steps:
       - name: Prepare
         run: |
