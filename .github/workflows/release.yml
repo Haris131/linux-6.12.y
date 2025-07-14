@@ -46,7 +46,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Prepare repository
-        run: git config --global --add safe.directory "$(pwd)"
+        run: |
+          git clean -fdx
+          git reset --hard HEAD
 
       - name: Patching kernel to 6.12.${{ inputs.kernel_version }}
         if: (github.event.inputs.patch_kernel == 'true')
@@ -72,9 +74,6 @@ jobs:
           else
             export CROSS_COMPILE=arm-linux-gnueabihf-
             export ARCH=arm
-            export DEB_BUILD_OPTIONS=nocheck
-            export DEB_HOST_ARCH=armhf
-            export DEB_BUILD_ARCH=arm64
           fi
           export LOCALVERSION=
           make LOCALVERSION= mrproper
