@@ -1,4 +1,4 @@
-name: Release kernel deb packages
+name: Release kernel deb packages armv7
 on:
   repository_dispatch:
   workflow_dispatch:
@@ -30,7 +30,7 @@ on:
           - true
           - false
 
-ENV:
+env:
   TZ: Asia/Jakarta
 
 jobs:
