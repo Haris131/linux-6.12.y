@@ -39,7 +39,9 @@ jobs:
     runs-on: ubuntu-latest
     container: 
       image: debian:bookworm
-      options: --hostname chewy
+      options: 
+        --hostname chewy
+        --platform=linux/arm/v7
     steps:
       - name: Prepare
         run: |
