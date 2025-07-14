@@ -33,12 +33,18 @@ on:
 jobs:
   build:
     name: Build kernel
-    runs-on: ubuntu-22.04-arm
+    runs-on: ubuntu-22.04
     steps:
       - name: Prepare
         run: |
+          cat /etc/apt/sources.list
+          sudo sed -i.bak -e 's/^deb/deb [ arch=amd64,i386 ]/' /etc/apt/sources.list
+          #deb [arch=amd64,i386] http://archive.ubuntu.com/ubuntu/ jammy main universe
+          echo "deb [arch=arm64,armhf] http://ports.ubuntu.com/ubuntu-ports jammy main universe" | sudo tee -a /etc/apt/sources.list
+          sudo dpkg --add-architecture armhf
+          sudo dpkg --add-architecture arm64
           sudo apt-get -y update
-          sudo apt-get -y install git lsb-release gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf bison flex build-essential libssl-dev libelf-dev debhelper bc rsync kmod cpio wget patchutils xz-utils
+          sudo apt-get -y install git lsb-release gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf bison flex build-essential libssl-dev:arm64 libssl-dev:armhf libelf-dev debhelper bc rsync kmod cpio wget patchutils xz-utils
           sudo timedatectl set-timezone Asia/Jakarta
           sudo hostnamectl set-hostname chewy
 
@@ -46,9 +52,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Prepare repository
-        run: |
-          git clean -fdx
-          git reset --hard HEAD
+        run: git config --global --add safe.directory "$(pwd)"
 
       - name: Patching kernel to 6.12.${{ inputs.kernel_version }}
         if: (github.event.inputs.patch_kernel == 'true')
