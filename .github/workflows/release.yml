@@ -16,7 +16,7 @@ on:
       arch:
         description: "Target architecture"
         required: true
-        default: 'armv7'
+        default: 'arm64'
         type: choice
         options:
           - arm64
@@ -33,19 +33,12 @@ on:
 jobs:
   build:
     name: Build kernel
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-arm
     steps:
       - name: Prepare
         run: |
-          sudo cp /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list.d/ports.sources
-          sudo sed -i.bak -e 's/^\(Suites:.*\)$/\1\nArchitectures: amd64 i386/' /etc/apt/sources.list.d/ubuntu.sources
-          sudo sed -i.bak -e 's/^URIs:.*$/URIs: http:\/\/ports.ubuntu.com\/ubuntu-ports\//' /etc/apt/sources.list.d/ports.sources
-          sudo sed -i -e 's/^\(Suites:.*\)$/\1\nArchitectures: armhf arm64/' /etc/apt/sources.list.d/ports.sources
-          cat /etc/apt/sources.list.d/ports.sources
-          sudo dpkg --add-architecture armhf
-          sudo dpkg --add-architecture arm64
           sudo apt-get -y update
-          sudo apt-get -y install git lsb-release gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf bison flex build-essential libssl-dev:arm64 libssl-dev:armhf libelf-dev debhelper bc rsync kmod cpio wget patchutils xz-utils
+          sudo apt-get -y install git lsb-release gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf bison flex build-essential libssl-dev libelf-dev debhelper bc rsync kmod cpio wget patchutils xz-utils
           sudo timedatectl set-timezone Asia/Jakarta
           sudo hostnamectl set-hostname chewy
 
@@ -78,7 +71,7 @@ jobs:
             export ARCH=arm64
           else
             export CROSS_COMPILE=arm-linux-gnueabihf-
-            export ARCH=arm
+            export ARCH=armhf
           fi
           export LOCALVERSION=
           make LOCALVERSION= mrproper
