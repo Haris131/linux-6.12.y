@@ -11,8 +11,16 @@ on:
       kernel_version:
         description: "Select kernel version"
         required: true
-        default: '33'
+        default: '37'
         type: string
+      arch:
+        description: "Target architecture"
+        required: true
+        default: 'armv7'
+        type: choice
+        options:
+          - arm64
+          - armv7
       ssh:
         description: 'SSH connection to Actions'
         required: true
@@ -30,7 +38,7 @@ jobs:
       - name: Prepare
         run: |
           sudo apt-get -y update
-          sudo apt-get -y install git lsb-release gcc-aarch64-linux-gnu bison flex build-essential libssl-dev libelf-dev debhelper bc rsync kmod cpio wget patchutils xz-utils
+          sudo apt-get -y install git lsb-release gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf bison flex build-essential libssl-dev libelf-dev debhelper bc rsync kmod cpio wget patchutils xz-utils
           sudo timedatectl set-timezone Asia/Jakarta
           sudo hostnamectl set-hostname chewy
 
@@ -58,8 +66,13 @@ jobs:
 
       - name: Build
         run: |
-          export CROSS_COMPILE=aarch64-linux-gnu-
-          export ARCH=arm64
+          if [[ "${{ inputs.arch }}" == "arm64" ]]; then
+            export CROSS_COMPILE=aarch64-linux-gnu-
+            export ARCH=arm64
+          else
+            export CROSS_COMPILE=arm-linux-gnueabihf-
+            export ARCH=arm
+          fi
           export LOCALVERSION=
           make LOCALVERSION= mrproper
           make uz801v3_defconfig
@@ -100,16 +113,19 @@ jobs:
         run: |
           cd .github/scripts
           chmod +x ./build_boot_img.sh
-          sudo ./build_boot_img.sh
+          sudo ./build_boot_img.sh ${{ inputs.arch }}
 
       - name: Generate release tag
         id: version
         run: |
           NAME=$(ls artifacts/linux-image-* | cut -d'_' -f1|cut -d'-' -f3)
-          TAG_NAME=$(echo v$NAME)
+          TAG_NAME=$(echo v$NAME-${{ inputs.arch }})
           git log -1 --format=%b > changes.txt
-          git tag $TAG_NAME
-          git push origin $TAG_NAME
+          gh release delete "$TAG_NAME" --yes || true
+          git tag -d "$TAG_NAME" 2>/dev/null || true
+          git push --delete origin "$TAG_NAME" 2>/dev/null || true
+          git tag "$TAG_NAME"
+          git push origin "$TAG_NAME"
           echo "NAME=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "TAG_NAME=$TAG_NAME" >> $GITHUB_OUTPUT
 
