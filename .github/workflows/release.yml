@@ -70,11 +70,8 @@ jobs:
             export CROSS_COMPILE=aarch64-linux-gnu-
             export ARCH=arm64
           else
-            export CROSS_COMPILE=arm-linux-gnueabihf-
+            export CROSS_COMPILE=arm-linux-gnueabi-
             export ARCH=arm
-            export DEB_BUILD_OPTIONS=nocheck
-            export DEB_HOST_ARCH=armhf
-            export DEB_BUILD_ARCH=amd64
           fi
           export LOCALVERSION=
           make LOCALVERSION= mrproper
