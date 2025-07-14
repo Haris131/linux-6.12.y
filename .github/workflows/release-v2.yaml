@@ -38,7 +38,7 @@ jobs:
     name: Build kernel
     runs-on: ubuntu-latest
     container: 
-      image: debian:bookworm:armhf
+      image: debian:bookworm
       options: --hostname chewy
     steps:
       - name: Prepare
