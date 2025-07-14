@@ -71,7 +71,8 @@ jobs:
             export ARCH=arm64
           else
             export CROSS_COMPILE=arm-linux-gnueabihf-
-            export ARCH=armhf
+            export ARCH=arm
+            export DEB_HOST_ARCH=armhf
           fi
           export LOCALVERSION=
           make LOCALVERSION= mrproper
