@@ -41,6 +41,7 @@ jobs:
           sudo apt-get -y install git lsb-release gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf bison flex build-essential libssl-dev libelf-dev debhelper bc rsync kmod cpio wget patchutils xz-utils
           sudo timedatectl set-timezone Asia/Jakarta
           sudo hostnamectl set-hostname chewy
+          sudo dpkg-architecture
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -73,6 +74,8 @@ jobs:
             export CROSS_COMPILE=arm-linux-gnueabihf-
             export ARCH=arm
             export DEB_HOST_ARCH=armhf
+            export DEB_BUILD_ARCH=armhf
+            export CC=arm-linux-gnueabihf-gcc
           fi
           export LOCALVERSION=
           make LOCALVERSION= mrproper
