@@ -38,7 +38,7 @@ jobs:
     name: Build kernel
     runs-on: ubuntu-latest
     container: 
-      image: --platform=linux/arm/v7 debian:bookworm
+      image: debian:bookworm
       options: --hostname chewy
     steps:
       - name: Prepare
