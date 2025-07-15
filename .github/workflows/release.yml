@@ -72,6 +72,7 @@ jobs:
           else
             export CROSS_COMPILE=arm-linux-gnueabihf-
             export ARCH=arm
+            export KBUILD_DEBARCH=armhf
           fi
           export LOCALVERSION=
           make LOCALVERSION= mrproper
