@@ -38,7 +38,8 @@ jobs:
       - name: Prepare
         run: |
           sudo apt-get -y update
-          sudo apt-get -y install git lsb-release gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf bison flex build-essential libssl-dev:armhf libelf-dev debhelper bc rsync kmod cpio wget patchutils xz-utils
+          sudo apt-get -y install git lsb-release gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf bison flex build-essential libssl-dev libelf-dev debhelper bc rsync kmod cpio wget patchutils xz-utils
+          sudo apt-get -y install build-essential fakeroot rsync libncurses-dev bison flex libssl-dev bc kmod cpio libelf-dev libudev-dev libpci-dev libiberty-dev dwarves
           sudo timedatectl set-timezone Asia/Jakarta
           sudo hostnamectl set-hostname chewy
 
