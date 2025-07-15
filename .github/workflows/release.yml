@@ -72,9 +72,6 @@ jobs:
           else
             export CROSS_COMPILE=arm-linux-gnueabihf-
             export ARCH=arm
-            export DEB_HOST_ARCH=arm64
-            export DEB_BUILD_ARCH=arm64
-            export CC=arm-linux-gnueabihf-gcc
           fi
           export LOCALVERSION=
           make LOCALVERSION= mrproper
